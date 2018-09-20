@@ -81,7 +81,12 @@ public class Client {
             byte[] buffer = new byte[BUF_SIZE];
             int sndNum;
             while ((sndNum = fileInputStream.read(buffer, 0, buffer.length)) > 0) {
-                socketOutputStream.write(buffer, 0, sndNum);
+                try {
+                    socketOutputStream.write(buffer, 0, sndNum);
+                } catch (IOException e) {
+                    System.err.println("Lost connection to the server. Aborting");
+                    return;
+                }
             }
 
             serverResponse = receiveStatusMessage(socketBufferedReader);
