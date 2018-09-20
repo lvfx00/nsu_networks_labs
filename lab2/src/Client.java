@@ -77,6 +77,7 @@ public class Client {
             }
 
             // upload file data
+
             byte[] buffer = new byte[BUF_SIZE];
             int sndNum;
             while ((sndNum = fileInputStream.read(buffer, 0, buffer.length)) > 0) {
