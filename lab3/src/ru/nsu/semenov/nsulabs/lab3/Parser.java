@@ -1,8 +1,9 @@
 package ru.nsu.semenov.nsulabs.lab3;
 
 import com.sun.istack.internal.NotNull;
-import ru.nsu.semenov.nsulabs.lab3.packets.*;
+import ru.nsu.semenov.nsulabs.lab3.messages.*;
 
+import java.net.SocketAddress;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -15,22 +16,24 @@ public class Parser {
 
     private Parser() {}
 
-    public static Packet parse(ByteBuffer buffer) throws IllegalArgumentException, BufferUnderflowException {
+    public static Message parse(ByteBuffer buffer, ParserContext context)
+            throws IllegalArgumentException, BufferUnderflowException {
+
         int msgTypeValue = buffer.getInt();
-        Optional<PacketType> optionalPacketType = PacketType.fromInt(msgTypeValue);
+        Optional<MessageType> optionalPacketType = MessageType.fromInt(msgTypeValue);
         if (!optionalPacketType.isPresent()) {
             throw new IllegalArgumentException("Invalid packet type code");
         }
-        PacketType packetType = optionalPacketType.get();
+        MessageType messageType = optionalPacketType.get();
 
-        switch (packetType) {
+        switch (messageType) {
             case CONN_REQ:
-                return ConnectionRequestPacket.newInstance();
+                return new ConnReqMessage(context.getAddress());
             case CONN_RESP:
-                return ConnectionResponsePacket.newInstance();
+                return new ConnRespMessage(context.getAddress());
             case CONN_ACK:
-                return ConnectionAcknowledgePacket.newInstance();
-            case MSG_SND: {
+                return new ConnAckMessage(context.getAddress());
+            case TEXT: {
                 long mostSignificantBits = buffer.getLong();
                 long leastSignificantBits = buffer.getLong();
                 UUID messageUuid = new UUID(mostSignificantBits, leastSignificantBits);
@@ -45,35 +48,35 @@ public class Parser {
                 buffer.get(dataBuffer);
                 String data = new String(dataBuffer, encodingCharset);
 
-                return MessageSendPacket.newInstance(messageUuid, name, data);
+                return new TextMessage(context.getAddress(), messageUuid, name, data);
             }
-            case MSG_ACK: {
+            case TEXT_ACK: {
                 long mostSignificantBits = buffer.getLong();
                 long leastSignificantBits = buffer.getLong();
                 UUID messageUuid = new UUID(mostSignificantBits, leastSignificantBits);
 
-                return MessageAcknowledgePacket.newInstance(messageUuid);
+                return new TextAckMessage(context.getAddress(), messageUuid);
             }
             default:
                 throw new IllegalArgumentException("Can't resolve packet's type");
         }
     }
 
-    public static @NotNull ByteBuffer extractData(@NotNull Packet packet) {
-        switch (packet.getPacketType()) {
-            case MSG_SND: {
-                MessageSendPacket messageSendPacket = (MessageSendPacket) packet;
+    public static @NotNull ByteBuffer extractData(@NotNull Message message) {
+        switch (message.getMessageType()) {
+            case TEXT: {
+                TextMessage textMessage = (TextMessage) message;
 
-                byte[] encodedName = messageSendPacket.getName().getBytes(encodingCharset);
-                byte[] encodedData = messageSendPacket.getData().getBytes(encodingCharset);
+                byte[] encodedName = textMessage.getName().getBytes(encodingCharset);
+                byte[] encodedData = textMessage.getData().getBytes(encodingCharset);
 
                 ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES * 3 + Long.BYTES * 2
                         + encodedName.length + encodedData.length);
 
-                buffer.putInt(messageSendPacket.getPacketType().getValue());
+                buffer.putInt(textMessage.getMessageType().getValue());
 
-                buffer.putLong(messageSendPacket.getMessageUuid().getMostSignificantBits());
-                buffer.putLong(messageSendPacket.getMessageUuid().getLeastSignificantBits());
+                buffer.putLong(textMessage.getUuid().getMostSignificantBits());
+                buffer.putLong(textMessage.getUuid().getLeastSignificantBits());
 
                 buffer.putInt(encodedName.length);
                 buffer.put(encodedName);
@@ -84,39 +87,24 @@ public class Parser {
                 buffer.rewind();
                 return buffer.asReadOnlyBuffer();
             }
-            case MSG_ACK: {
-                MessageAcknowledgePacket messageAcknowledgePacket = (MessageAcknowledgePacket) packet;
+            case TEXT_ACK: {
+                TextAckMessage textAckMessage = (TextAckMessage) message;
 
                 ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES + Long.BYTES * 2);
 
-                buffer.putInt(messageAcknowledgePacket.getPacketType().getValue());
+                buffer.putInt(textAckMessage.getMessageType().getValue());
 
-                buffer.putLong(messageAcknowledgePacket.getMessageUuid().getMostSignificantBits());
-                buffer.putLong(messageAcknowledgePacket.getMessageUuid().getLeastSignificantBits());
-
-                buffer.rewind();
-                return buffer.asReadOnlyBuffer();
-            }
-            case CONN_REQ: {
-                ConnectionRequestPacket connectionRequestPacket = (ConnectionRequestPacket) packet;
-                ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-                buffer.putInt(connectionRequestPacket.getPacketType().getValue());
+                buffer.putLong(textAckMessage.getUuid().getMostSignificantBits());
+                buffer.putLong(textAckMessage.getUuid().getLeastSignificantBits());
 
                 buffer.rewind();
                 return buffer.asReadOnlyBuffer();
             }
-            case CONN_RESP: {
-                ConnectionResponsePacket connectionResponsePacket = (ConnectionResponsePacket) packet;
-                ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-                buffer.putInt(connectionResponsePacket.getPacketType().getValue());
-
-                buffer.rewind();
-                return buffer.asReadOnlyBuffer();
-            }
+            case CONN_REQ:
+            case CONN_RESP:
             case CONN_ACK: {
-                ConnectionAcknowledgePacket connectionAcknowledgePacket = (ConnectionAcknowledgePacket) packet;
                 ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-                buffer.putInt(connectionAcknowledgePacket.getPacketType().getValue());
+                buffer.putInt(message.getMessageType().getValue());
 
                 buffer.rewind();
                 return buffer.asReadOnlyBuffer();
@@ -124,5 +112,17 @@ public class Parser {
             default:
                 throw new IllegalArgumentException("Can't resolve packet's type");
         }
+    }
+
+    public static class ParserContext {
+        public @NotNull SocketAddress getAddress() {
+            return address;
+        }
+
+        public ParserContext(@NotNull SocketAddress address) {
+            this.address = address;
+        }
+
+        private final SocketAddress address;
     }
 }

@@ -3,15 +3,18 @@ package ru.nsu.semenov.nsulabs.lab3;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.Scanner;
 
 public class Main {
+    public static final String EXIT_STRING = "exit";
+
     public static void main(String[] args) {
         String name;
         int lossRate;
         InetSocketAddress localAddress;
         InetSocketAddress parentAddress;
 
-        if (5 == args.length || 3 == args.length) {
+        if (3 == args.length || 5 == args.length) {
             name = args[0];
 
             try {
@@ -24,7 +27,7 @@ public class Main {
 
             try {
                 int port = Integer.parseInt(args[2]);
-                InetAddress localhost = InetAddress.getByName(args[3]);
+                InetAddress localhost = InetAddress.getLocalHost();
                 localAddress = new InetSocketAddress(localhost, port);
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("Invalid local port specified");
@@ -46,7 +49,30 @@ public class Main {
                 parentAddress = null;
             }
         } else {
-            throw new IllegalArgumentException("Usage: node-name loss-rate node-port [parent-ip parent-port]");
+            System.err.println("Usage: node-name loss-rate node-port [parent-ip parent-port]");
+            return;
+        }
+
+        Node myNode = Node.newInstance(name, lossRate, localAddress, parentAddress);
+        Thread nodeWorkerThread = new Thread(myNode::run);
+        nodeWorkerThread.start();
+
+        Scanner inputScanner = new Scanner(System.in);
+        while (true) {
+            String inputMessage = inputScanner.nextLine();
+            if (EXIT_STRING.equals(inputMessage)) {
+                myNode.stop();
+                try {
+                    nodeWorkerThread.join();
+                } catch (InterruptedException e) {
+                    System.err.println(e.getMessage());
+                    e.printStackTrace();
+                }
+                return;
+            }
+            else {
+                myNode.sendMessage(inputMessage);
+            }
         }
     }
 }
