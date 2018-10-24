@@ -6,11 +6,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public enum MessageType {
-    CONN_REQ(0),
-    CONN_RESP(1),
-    CONN_ACK(2),
-    TEXT(3),
-    TEXT_ACK(4);
+    TEXT(1),
+    ACKNOWLEDGE(2),
+    CONNECTION(3);
 
     MessageType(int value) {
         this.value = value;

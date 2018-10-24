@@ -2,12 +2,12 @@ package ru.nsu.semenov.nsulabs.lab3;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.nsu.semenov.nsulabs.lab3.Parser.ParserContext;
 import ru.nsu.semenov.nsulabs.lab3.messages.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
@@ -16,10 +16,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.*;
 
 public class Node {
     private static final long SELECTOR_TIMEOUT = 1000; // in milliseconds
@@ -105,38 +102,42 @@ public class Node {
     }
 
     public void sendMessage(@NotNull String messageText) {
-        // send message to all another nodes
+        // send message to all another knownNodes
         UUID uuid = UUID.randomUUID();
 
-        for (SocketAddress address : nodes) {
-            Message sendingMessage = new TextMessage(address, uuid, name, messageText);
+        for (SocketAddress address : knownNodes) {
+            Message sendingMessage = TextMessage.newInstance(address, uuid, name, messageText);
+
             sendingMessagesQueue.add(sendingMessage);
-            pendingStorage.addPendingBySentMessage(sendingMessage);
+            pendingsInfoMap.put(new PendingKey(uuid, address),
+                    new PendingInfo(sendingMessage, Instant.MAX, 0));
         }
     }
 
-    public void connect(@NotNull SocketAddress address) {
-        Message sendingMessage = new ConnReqMessage(address);
+    private void connect(@NotNull SocketAddress address) {
+        Message sendingMessage = ConnectionMessage.newInstance(address, UUID.randomUUID());
         sendingMessagesQueue.add(sendingMessage);
-        pendingStorage.addPendingBySentMessage(sendingMessage);
+        pendingsInfoMap.put(new PendingKey(sendingMessage.getUuid(), address),
+                new PendingInfo(sendingMessage, Instant.MAX, 0));
     }
+
+    private void cleanup() {
+        dataExecutor.shutdown();
+    }
+
+    private void showMessage(TextMessage message) {
+        System.out.println(message.getName() + ": " + message.getText());
+    }
+
 
     private void handleRead(SelectionKey key) throws IOException {
         DatagramChannel channel = (DatagramChannel) key.channel();
         SocketAddress senderAddress = channel.receive(inputBuffer);
-        Message message;
-        try {
-            message = Parser.parse(inputBuffer, new Parser.ParserContext(senderAddress));
-        } catch (IllegalArgumentException | BufferUnderflowException e) {
-            System.err.println(e.getMessage());
-            System.err.println("Invalid packet received. Skipping.");
-            return;
+
+        if (knownNodes.contains(senderAddress)) {
+            Optional<Message> message = Parser.parse(inputBuffer, new ParserContext(senderAddress));
+            message.ifPresent(this::handleMessage);
         }
-
-        System.out.println("Received " + message.getMessageType().toString() +
-                " message from " + senderAddress.toString());
-
-        processPacket(message);
     }
 
     private void handleWrite(SelectionKey key) throws IOException {
@@ -147,106 +148,96 @@ public class Node {
             return;
         }
 
-        System.out.println("Trying to send " + sendingMessage.getMessageType().toString() +
-                " message to " + sendingMessage.getDestAddress().toString());
-
         ByteBuffer dataBuffer = Parser.extractData(sendingMessage);
         int res = channel.send(dataBuffer, sendingMessage.getDestAddress());
 
         if (0 == res) { // insufficient room for the datagram in the underlying output buffer
-            System.out.println("insufficient room for the datagram in the underlying output buffer");
             sendingMessagesQueue.add(sendingMessage);
             return;
         }
 
-        System.out.println("Successfully sent " + sendingMessage.getMessageType().toString() +
-                " packet to " + sendingMessage.getDestAddress().toString());
+        PendingKey pendingKey = new PendingKey(sendingMessage.getUuid(), sendingMessage.getDestAddress());
+        if (pendingsInfoMap.containsKey(pendingKey)) {
+            pendingsInfoMap.get(pendingKey).updateLastTime(Instant.now());
+        }
     }
 
-    private void processPacket(Message message) {
+    private void handleMessage(Message message) {
         // message loss imitation
         int rand = ThreadLocalRandom.current().nextInt(0, 100);
         if (rand < lossRate) {
-            System.out.println(message.getMessageType().toString() + " message from " +
-                    message.getDestAddress().toString() + " was rejected by packetLoss filter");
             return;
         }
 
-        System.out.println(message.getMessageType().toString() + " message received from " +
-                message.getDestAddress().toString());
         switch (message.getMessageType()) {
-            case CONN_REQ:
-                dataExecutor.submit(() -> processMessage((ConnReqMessage) message));
-                break;
-            case CONN_RESP:
-                dataExecutor.submit(() -> processMessage((ConnRespMessage) message));
-                break;
-            case CONN_ACK:
-                dataExecutor.submit(() -> processMessage((ConnAckMessage) message));
-                break;
             case TEXT:
-                dataExecutor.submit(() -> processMessage((TextMessage) message));
+                dataExecutor.submit(() -> handleTextMessage((TextMessage) message));
                 break;
-            case TEXT_ACK:
-                dataExecutor.submit(() -> processMessage((TextAckMessage) message));
+            case ACKNOWLEDGE:
+                dataExecutor.submit(() -> handleAcknowledgeMessage((AcknowledgeMessage) message));
+                break;
+            case CONNECTION:
+                dataExecutor.submit(() -> handleConnectionMessage((ConnectionMessage) message));
                 break;
             default:
                 throw new AssertionError("Invalid message type");
         }
     }
 
-    private void processMessage(ConnAckMessage receivedMessage) {
-        if (pendingStorage.containsPending(receivedMessage)) {
-            pendingStorage.removePending(receivedMessage);
-
-            System.out.println("Added node on " + receivedMessage.getDestAddress());
-            nodes.add(receivedMessage.getDestAddress());
-        }
-    }
-
-    private void processMessage(ConnReqMessage receivedMessage) {
-        if (!nodes.contains(receivedMessage.getDestAddress())) {
-            Message responseMessage = new ConnRespMessage(receivedMessage.getDestAddress());
-            sendingMessagesQueue.add(responseMessage);
-
-            pendingStorage.addPendingBySentMessage(responseMessage);
-        }
-    }
-
-    private void processMessage(ConnRespMessage receivedMessage) {
-        if (pendingStorage.containsPending(receivedMessage)) {
-            pendingStorage.removePending(receivedMessage);
-            Message responseMessage = new ConnAckMessage(receivedMessage.getDestAddress());
+    private void handleConnectionMessage(@NotNull ConnectionMessage message) {
+        if (!knownNodes.contains(message.getDestAddress())) {
+            Message responseMessage = AcknowledgeMessage.newInstance(message.getDestAddress(), UUID.randomUUID(), message.getUuid());
 
             sendingMessagesQueue.add(responseMessage);
-            pendingStorage.addPendingBySentMessage(responseMessage);
+            pendingsInfoMap.put(new PendingKey(responseMessage.getUuid(), message.getDestAddress()),
+                    new PendingInfo(responseMessage, Instant.MAX, 0));
         }
-        // else ignore packet
     }
 
-    private void processMessage(TextAckMessage receivedMessage) {
-        if (pendingStorage.containsPending(receivedMessage)) {
-            pendingStorage.removePending(receivedMessage);
+    private void handleAcknowledgeMessage(@NotNull AcknowledgeMessage message) {
+        PendingKey key = new PendingKey(message.getAcknowledgeUuid(), message.getDestAddress());
+        if (pendingsInfoMap.containsKey(key)) {
+            Message originalMessage = pendingsInfoMap.get(key).getOriginalMessage();
+            // remove pending corresponding to received acknowledge
+            pendingsInfoMap.remove(key);
+
+            switch (originalMessage.getMessageType()) {
+                // got acknowledge for text message
+                case TEXT:
+                    break;
+                case ACKNOWLEDGE:
+                    // got acknowledge for connection response
+                    knownNodes.add(message.getDestAddress());
+                    break;
+                case CONNECTION:
+                    // got acknowledge for connection request
+                    // send acknowledge for connection response
+                    sendingMessagesQueue.add(AcknowledgeMessage.newInstance(message.getDestAddress(), UUID.randomUUID(), message.getUuid()));
+                    knownNodes.add(message.getDestAddress());
+                    break;
+                default:
+                    throw new AssertionError("Invalid message type");
+            }
         }
-        // else ignore receivedMessage
     }
 
-    private void processMessage(TextMessage receivedMessage) {
-        if (logger.isLogged(receivedMessage.getUuid())) { // we have already received this package
-            Optional<Message> optional = getPending(receivedMessage);
-            // send acknowledge if it exists
-            optional.ifPresent(sendingMessagesQueue::add);
-        } else { // received new message
-            showMessage(receivedMessage);
-            logger.log(receivedMessage.getUuid());
-            // send message to all another nodes
-            for (SocketAddress address : nodes) {
-                if (!address.equals(receivedMessage.getDestAddress())) {
-                    Message responseMessage = new TextMessage(address,
-                            receivedMessage.getUuid(), receivedMessage.getName(), receivedMessage.getData());
+    private void handleTextMessage(@NotNull TextMessage message) {
+        if (messageLogs.contains(message.getUuid())) {
+            // resend acknowledge
+            sendingMessagesQueue.add(AcknowledgeMessage.newInstance(message.getDestAddress(), UUID.randomUUID(), message.getUuid()));
+        } else {
+            showMessage(message);
+            messageLogs.add(message.getUuid());
+
+            // send message to all another knownNodes
+            for (SocketAddress address : knownNodes) {
+                if (!address.equals(message.getDestAddress())) {
+                    Message responseMessage = TextMessage.newInstance(address,
+                            message.getUuid(), message.getName(), message.getText());
 
                     sendingMessagesQueue.add(responseMessage);
-                    pendingStorage.addPendingBySentMessage(responseMessage);
+                    pendingsInfoMap.put(new PendingKey(responseMessage.getUuid(), address),
+                            new PendingInfo(responseMessage, Instant.MAX, 0));
                 }
             }
         }
@@ -254,107 +245,39 @@ public class Node {
 
     private void checkPendings() {
         Instant now = Instant.now();
-        for (Message msg : pendingStorage.pendingInfos.keySet()) {
-            if (MessageType.TEXT ==  msg.getMessageType() &&
-                    !nodes.contains(msg.getDestAddress())) {
+        List<PendingKey> toRemove = new ArrayList<>();
 
-                Optional<Message> optional = getPending(msg);
-                optional.ifPresent(pendingStorage::removePending);
+        for (Map.Entry<PendingKey, PendingInfo> entry : pendingsInfoMap.entrySet()) {
+            PendingInfo pendingInfo = entry.getValue();
+
+            if (!knownNodes.contains(pendingInfo.getOriginalMessage().getDestAddress())) {
+                toRemove.add(entry.getKey());
                 continue;
             }
 
-            PendingStorage.PendingInfo pendingInfo = pendingStorage.pendingInfos.get(msg);
             if (Duration.between(pendingInfo.getLastSendTime(), now).compareTo(RESENDING_INTERVAL) > 0) {
-
-                System.out.println(msg.getMessageType().toString() + " message from " +
-                        msg.getDestAddress().toString() + " acknowledge receiving timeout.");
-
                 if (pendingInfo.getResendingCount() >= MAX_RESENDING_COUNT) {
-                    Optional<Message> optional = getPending(msg);
-                    optional.ifPresent(pendingStorage::removePending);
+                    toRemove.add(entry.getKey());
+                    knownNodes.remove(pendingInfo.getOriginalMessage().getDestAddress());
 
-                    if (MessageType.TEXT == msg.getMessageType()) {
-                        System.out.println("Attempts limit reached. Disconnecting " + msg.getDestAddress() + " node.");
-                        nodes.remove(msg.getDestAddress());
-                    }
-
-                } else { // send a copy of package
-                    System.out.println("Trying to send new copy.. Attempts last: " +
-                            pendingInfo.getResendingCount());
-                    sendingMessagesQueue.add(msg);
+                } else {
+                    sendingMessagesQueue.add(pendingInfo.getOriginalMessage());
                     pendingInfo.incrementResendingCount();
                     pendingInfo.updateLastTime(now);
                 }
             }
         }
 
-    }
-
-    private void cleanup() {
-        dataExecutor.shutdown();
-    }
-
-    private void showMessage(TextMessage message) {
-        System.out.println(message.getName() + ": " + message.getData());
-    }
-
-    private static @NotNull Optional<Message> getPending(@NotNull Message message) {
-        switch (message.getMessageType()) {
-            case CONN_REQ:
-                return Optional.of(new ConnRespMessage(message.getDestAddress()));
-            case CONN_RESP:
-                return Optional.of(new ConnAckMessage(message.getDestAddress()));
-            case CONN_ACK:
-                return Optional.empty();
-            case TEXT:
-                TextMessage textMessage = (TextMessage) message;
-                return Optional.of(new TextAckMessage(textMessage.getDestAddress(), textMessage.getUuid()));
-            case TEXT_ACK:
-                return Optional.empty();
-            default:
-                throw new AssertionError("Invalid message type.");
-        }
-    }
-
-private static class PendingStorage {
-    PendingStorage() {
-    }
-
-    final HashMap<Message, Message> expectedAcksToSentMessages = new HashMap<>();
-    final HashMap<Message, PendingInfo> pendingInfos = new HashMap<>();
-
-    void addPendingBySentMessage(@NotNull Message sentMessage) {
-        Optional<Message> optional = getPending(sentMessage);
-        if (optional.isPresent()) {
-            Message pendingMessage = optional.get();
-            if (!expectedAcksToSentMessages.containsKey(pendingMessage)) {
-                expectedAcksToSentMessages.put(pendingMessage, sentMessage);
-                pendingInfos.put(sentMessage, new PendingInfo(0, Instant.now()));
-            }
-            // else skip message, it is already in storage
-        }
-        // else skip message, it doesn't need acknowledge
-    }
-
-    boolean containsPending(@NotNull Message receivedMessage) {
-        return expectedAcksToSentMessages.containsKey(receivedMessage);
-    }
-
-    /**
-     * @param receivedMessage represents received message by node
-     */
-    void removePending(@NotNull Message receivedMessage) {
-        Message sentMessage = expectedAcksToSentMessages.get(receivedMessage);
-        if (null != sentMessage) {
-            pendingInfos.remove(sentMessage);
-            expectedAcksToSentMessages.remove(receivedMessage);
+        for (PendingKey key : toRemove) {
+            pendingsInfoMap.remove(key);
         }
     }
 
     private static class PendingInfo {
-        PendingInfo(int resendingCount, @NotNull Instant lastSendTime) {
-            this.resendingCount = resendingCount;
+        PendingInfo(@NotNull Message originalMessage, @NotNull Instant lastSendTime, int resendingCount) {
+            this.originalMessage = originalMessage;
             this.lastSendTime = lastSendTime;
+            this.resendingCount = resendingCount;
         }
 
         int getResendingCount() {
@@ -374,25 +297,47 @@ private static class PendingStorage {
             lastSendTime = instant;
         }
 
+
+        @NotNull Message getOriginalMessage() {
+            return originalMessage;
+        }
+
+        private final Message originalMessage;
         private int resendingCount;
         private Instant lastSendTime;
     }
-}
 
-private static class MessageLogger {
-    MessageLogger() {
+    private static class PendingKey {
+        PendingKey(UUID uuid, SocketAddress socketAddress) {
+            this.uuid = uuid;
+            this.socketAddress = socketAddress;
+        }
+
+        public UUID getUuid() {
+            return uuid;
+        }
+
+        public SocketAddress getSocketAddress() {
+            return socketAddress;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof PendingKey)) return false;
+            PendingKey that = (PendingKey) o;
+            return Objects.equals(uuid, that.uuid) &&
+                    Objects.equals(socketAddress, that.socketAddress);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(uuid, socketAddress);
+        }
+
+        private final UUID uuid;
+        private final SocketAddress socketAddress;
     }
-
-    void log(@NotNull UUID uuid) {
-        logs.add(uuid);
-    }
-
-    boolean isLogged(@NotNull UUID uuid) {
-        return logs.contains(uuid);
-    }
-
-    private final HashSet<UUID> logs = new HashSet<>();
-}
 
     private final String name;
     private final int lossRate;
@@ -401,14 +346,14 @@ private static class MessageLogger {
 
     private boolean isRunning = false;
 
-    private final PendingStorage pendingStorage = new PendingStorage();
-    private final MessageLogger logger = new MessageLogger();
+    private final ConcurrentHashMap<PendingKey, PendingInfo> pendingsInfoMap = new ConcurrentHashMap<>();
+    private final HashSet<UUID> messageLogs = new HashSet<>();
 
     private final ByteBuffer inputBuffer = ByteBuffer.allocate(MAX_MSG_SIZE);
     private final ExecutorService dataExecutor = Executors.newSingleThreadExecutor();
 
     private final ConcurrentLinkedQueue<Message> sendingMessagesQueue = new ConcurrentLinkedQueue<>();
 
-    private final LinkedList<SocketAddress> nodes = new LinkedList<>();
+    private final HashSet<SocketAddress> knownNodes = new HashSet<>();
 }
 

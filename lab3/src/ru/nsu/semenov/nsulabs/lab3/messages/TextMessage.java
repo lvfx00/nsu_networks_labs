@@ -5,15 +5,22 @@ import org.jetbrains.annotations.NotNull;
 import java.net.SocketAddress;
 import java.util.UUID;
 
-public final class TextMessage extends AbstractMessage {
-    public TextMessage(@NotNull SocketAddress address,
+public final class TextMessage implements Message {
+    private TextMessage(@NotNull SocketAddress senderAddress,
                         @NotNull UUID uuid,
                         @NotNull String name,
-                        @NotNull String data) {
-        super(address);
+                        @NotNull String text) {
+        this.senderAddress = senderAddress;
         this.uuid = uuid;
         this.name = name;
-        this.data = data;
+        this.text = text;
+    }
+
+    public static @NotNull TextMessage newInstance(@NotNull SocketAddress senderAddress,
+                                                   @NotNull UUID uuid,
+                                                   @NotNull String name,
+                                                   @NotNull String text) {
+        return new TextMessage(senderAddress, uuid, name, text);
     }
 
     @Override
@@ -25,15 +32,21 @@ public final class TextMessage extends AbstractMessage {
         return uuid;
     }
 
-    public @NotNull String getData() {
-        return data;
+    @Override
+    public @NotNull SocketAddress getDestAddress() {
+        return senderAddress;
+    }
+
+    public @NotNull String getText() {
+        return text;
     }
 
     public @NotNull String getName() {
         return name;
     }
 
+    private final SocketAddress senderAddress;
     private final UUID uuid;
     private final String name;
-    private final String data;
+    private final String text;
 }
