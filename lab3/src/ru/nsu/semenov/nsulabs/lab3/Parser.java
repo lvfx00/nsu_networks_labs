@@ -17,16 +17,15 @@ class Parser {
     private Parser() {}
 
     static @NotNull Optional<Message> parse(@NotNull ByteBuffer buffer, @NotNull ParserContext context) {
-
-        int msgTypeValue = buffer.getInt();
-        Optional<MessageType> optionalPacketType = MessageType.fromInt(msgTypeValue);
-        if (!optionalPacketType.isPresent()) {
-            return Optional.empty();
-        }
-
-        MessageType messageType = optionalPacketType.get();
-
+        buffer.rewind();
         try {
+            int msgTypeValue = buffer.getInt();
+            Optional<MessageType> optionalPacketType = MessageType.fromInt(msgTypeValue);
+            if (!optionalPacketType.isPresent()) {
+                return Optional.empty();
+            }
+
+            MessageType messageType = optionalPacketType.get();
             switch (messageType) {
                 case TEXT: {
                     long mostSignificantBits = buffer.getLong();
@@ -53,23 +52,21 @@ class Parser {
 
                     return Optional.of(TextMessage.newInstance(context.getAddress(), messageUuid, name, text));
                 }
-                case ACKNOWLEDGE: {
+                case TEXT_ACK: {
                     long mostSignificantBits = buffer.getLong();
                     long leastSignificantBits = buffer.getLong();
                     UUID messageUuid = new UUID(mostSignificantBits, leastSignificantBits);
 
-                    mostSignificantBits = buffer.getLong();
-                    leastSignificantBits = buffer.getLong();
-                    UUID acknowledgeUuid = new UUID(mostSignificantBits, leastSignificantBits);
-
-                    return Optional.of(AcknowledgeMessage.newInstance(context.getAddress(), messageUuid, acknowledgeUuid));
+                    return Optional.of(TextAckMessage.newInstance(context.getAddress(), messageUuid));
                 }
-                case CONNECTION: {
-                    long mostSignificantBits = buffer.getLong();
-                    long leastSignificantBits = buffer.getLong();
-                    UUID messageUuid = new UUID(mostSignificantBits, leastSignificantBits);
-
-                    return Optional.of(ConnectionMessage.newInstance(context.getAddress(), messageUuid));
+                case CONN_REQ: {
+                    return Optional.of(ConnReqMessage.newInstance(context.getAddress()));
+                }
+                case CONN_ACK: {
+                    return Optional.of(ConnAckMessage.newInstance(context.getAddress()));
+                }
+                case KEEP_ALIVE: {
+                    return Optional.of(KeepAliveMessage.newInstance(context.getAddress()));
                 }
                 default:
                     return Optional.empty();
@@ -105,29 +102,25 @@ class Parser {
                 buffer.rewind();
                 return buffer.asReadOnlyBuffer();
             }
-            case ACKNOWLEDGE: {
-                AcknowledgeMessage acknowledgeMessage = (AcknowledgeMessage) message;
+            case TEXT_ACK: {
+                TextAckMessage textAckMessage = (TextAckMessage) message;
 
                 ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES + Long.BYTES * 4);
 
                 buffer.putInt(message.getMessageType().getValue());
 
-                buffer.putLong(message.getUuid().getMostSignificantBits());
-                buffer.putLong(message.getUuid().getLeastSignificantBits());
-
-                buffer.putLong(acknowledgeMessage.getAcknowledgeUuid().getMostSignificantBits());
-                buffer.putLong(acknowledgeMessage.getAcknowledgeUuid().getLeastSignificantBits());
+                buffer.putLong(textAckMessage.getUuid().getMostSignificantBits());
+                buffer.putLong(textAckMessage.getUuid().getLeastSignificantBits());
 
                 buffer.rewind();
                 return buffer.asReadOnlyBuffer();
             }
-            case CONNECTION: {
-                ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES + Long.BYTES * 2);
+            case CONN_REQ:
+            case CONN_ACK:
+            case KEEP_ALIVE: {
+                ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
 
                 buffer.putInt(message.getMessageType().getValue());
-
-                buffer.putLong(message.getUuid().getMostSignificantBits());
-                buffer.putLong(message.getUuid().getLeastSignificantBits());
 
                 buffer.rewind();
                 return buffer.asReadOnlyBuffer();

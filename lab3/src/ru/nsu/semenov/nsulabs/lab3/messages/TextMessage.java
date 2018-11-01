@@ -33,7 +33,7 @@ public final class TextMessage implements Message {
     }
 
     @Override
-    public @NotNull SocketAddress getDestAddress() {
+    public @NotNull SocketAddress getAddress() {
         return senderAddress;
     }
 

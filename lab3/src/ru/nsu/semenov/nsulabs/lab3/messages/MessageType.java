@@ -7,8 +7,10 @@ import java.util.stream.Stream;
 
 public enum MessageType {
     TEXT(1),
-    ACKNOWLEDGE(2),
-    CONNECTION(3);
+    TEXT_ACK(2),
+    CONN_REQ(3),
+    CONN_ACK(4),
+    KEEP_ALIVE(5);
 
     MessageType(int value) {
         this.value = value;

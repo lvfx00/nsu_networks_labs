@@ -1,23 +1,25 @@
 package ru.nsu.semenov.nsulabs.lab3.messages;
 
+
 import org.jetbrains.annotations.NotNull;
 
 import java.net.SocketAddress;
 import java.util.UUID;
 
-public class ConnectionMessage implements Message {
-    private ConnectionMessage(SocketAddress senderAddress, UUID uuid) {
+public class TextAckMessage implements Message {
+    private TextAckMessage(SocketAddress senderAddress, UUID uuid) {
         this.uuid = uuid;
         this.senderAddress = senderAddress;
     }
 
-    public static @NotNull ConnectionMessage newInstance(@NotNull SocketAddress senderAddress, @NotNull UUID uuid) {
-        return new ConnectionMessage(senderAddress, uuid);
+    public static @NotNull TextAckMessage newInstance(@NotNull SocketAddress senderAddress,
+                                                      @NotNull UUID uuid) {
+        return new TextAckMessage(senderAddress, uuid);
     }
 
     @Override
     public @NotNull MessageType getMessageType() {
-        return MessageType.CONNECTION;
+        return MessageType.TEXT_ACK;
     }
 
     public @NotNull UUID getUuid() {
@@ -25,11 +27,10 @@ public class ConnectionMessage implements Message {
     }
 
     @Override
-    public @NotNull
-    SocketAddress getDestAddress() {
+    public @NotNull SocketAddress getAddress() {
         return senderAddress;
     }
 
-    private final UUID uuid;
     private final SocketAddress senderAddress;
+    private final UUID uuid;
 }
