@@ -1,17 +1,15 @@
 package ru.nsu.semenov.nsulabs.lab3;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class Main {
-    public static final String EXIT_STRING = "exit";
+    private static final String EXIT_STRING = "exit";
 
     public static void main(String[] args) {
         String name;
         int lossRate;
-        InetSocketAddress localAddress;
+        int localPort;
         InetSocketAddress parentAddress;
 
         if (3 == args.length || 5 == args.length) {
@@ -20,30 +18,31 @@ public class Main {
             try {
                 lossRate = Integer.parseInt(args[1]);
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid loss rate specified");
+                System.err.println("Invalid loss rate specified");
+                return;
             }
-            if (lossRate < 0 || lossRate > 100)
-                throw new IllegalArgumentException("Loss rate must be integer from 0 to 100)");
+            if (lossRate < 0 || lossRate > 100) {
+                System.err.println("Loss rate must be integer from 0 to 100)");
+                return;
+            }
 
             try {
-                int port = Integer.parseInt(args[2]);
-                InetAddress localhost = InetAddress.getLocalHost();
-                localAddress = new InetSocketAddress(localhost, port);
+                localPort = Integer.parseInt(args[2]);
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid local port specified");
-            } catch (UnknownHostException e) {
-                throw new IllegalArgumentException("Unable to resolve localhost");
+                System.err.println("Invalid local port specified");
+                return;
             }
 
             if (5 == args.length) {
                 try {
                     int port = Integer.parseInt(args[4]);
-                    InetAddress localhost = InetAddress.getByName(args[3]);
-                    parentAddress = new InetSocketAddress(localhost, port);
+                    parentAddress = new InetSocketAddress(args[3], port);
                 } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("Invalid parent port specified");
-                } catch (UnknownHostException e) {
-                    throw new IllegalArgumentException("Unable to resolve parent address");
+                    System.err.println("Invalid parent port specified");
+                    return;
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Invalid parent address specified");
+                    return;
                 }
             } else {
                 parentAddress = null;
@@ -53,9 +52,9 @@ public class Main {
             return;
         }
 
-        Node myNode = Node.newInstance(name, lossRate, localAddress, parentAddress);
-        Thread nodeWorkerThread = new Thread(myNode::run);
-        nodeWorkerThread.start();
+        Node myNode = Node.newInstance(name, lossRate, localPort, parentAddress);
+        Thread nodeThread = new Thread(myNode::run);
+        nodeThread.start();
 
         Scanner inputScanner = new Scanner(System.in);
         while (true) {
@@ -63,14 +62,12 @@ public class Main {
             if (EXIT_STRING.equals(inputMessage)) {
                 myNode.stop();
                 try {
-                    nodeWorkerThread.join();
+                    nodeThread.join();
+                    return;
                 } catch (InterruptedException e) {
                     System.err.println(e.getMessage());
-                    e.printStackTrace();
                 }
-                return;
-            }
-            else {
+            } else {
                 myNode.sendMessage(inputMessage);
             }
         }

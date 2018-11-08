@@ -33,21 +33,32 @@ public class Node {
     private static final Duration KEEP_ALIVE_INTERVAL = Duration.ofMillis(500);
     private static final Duration MAX_WITHOUT_KEEP_ALIVE = Duration.ofMillis(10000);
 
+    private final String name;
+    private final int lossRate;
+    private final InetSocketAddress localAddress;
+    private final InetSocketAddress parentAddress;
+
+    private boolean isRunning = false;
+    private final HashMap<UUID, TextMessage> messageLogs = new HashMap<>();
+    private final ExecutorService dataExecutor = Executors.newSingleThreadExecutor();
+    private final ConcurrentLinkedQueue<Message> sendingMessagesQueue = new ConcurrentLinkedQueue<>();
+    private final HashMap<SocketAddress, NodeInfo> nodes = new HashMap<>();
+
     private Node(@NotNull String name,
                  int lossRate,
-                 @NotNull InetSocketAddress localAddress,
+                 int localPort,
                  @Nullable InetSocketAddress parentAddress) {
         this.name = name;
         this.lossRate = lossRate;
-        this.localAddress = localAddress;
+        this.localAddress = new InetSocketAddress(localPort);
         this.parentAddress = parentAddress;
     }
 
     public static @NotNull Node newInstance(@NotNull String name,
                                             int lossRate,
-                                            @NotNull InetSocketAddress localAddress,
+                                            int localPort,
                                             @Nullable InetSocketAddress parentAddress) {
-        return new Node(name, lossRate, localAddress, parentAddress);
+        return new Node(name, lossRate, localPort, parentAddress);
     }
 
     public void run() {
@@ -299,7 +310,7 @@ public class Node {
                                 textEntry.getValue().incrementResendingCount();
 
                                 TextMessage message = messageLogs.get(textEntry.getKey());
-                                System.out.println(message.getText());
+//                                System.out.println(message.getText());
 
                                 sendingMessagesQueue.add(TextMessage.newInstance(entry.getKey(),
                                         message.getUuid(), message.getName(), message.getText()));
@@ -415,16 +426,5 @@ public class Node {
         private int sendCount;
         private Instant lastSendTime;
     }
-
-    private final String name;
-    private final int lossRate;
-    private final InetSocketAddress localAddress;
-    private final InetSocketAddress parentAddress;
-
-    private boolean isRunning = false;
-    private final HashMap<UUID, TextMessage> messageLogs = new HashMap<>();
-    private final ExecutorService dataExecutor = Executors.newSingleThreadExecutor();
-    private final ConcurrentLinkedQueue<Message> sendingMessagesQueue = new ConcurrentLinkedQueue<>();
-    private final HashMap<SocketAddress, NodeInfo> nodes = new HashMap<>();
 }
 
