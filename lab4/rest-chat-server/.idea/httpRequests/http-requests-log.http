@@ -1,0 +1,412 @@
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{"username":"Jack111"}
+
+<> 2018-11-24T063146.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 9304af67-ecef-40d4-a1ec-6e7e39d4c29a
+
+{"message":"haaaai 111"}
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 9304af67-ecef-40d4-a1ec-6e7e39d4c29a
+
+{"message":"haaaai 111"}
+
+<> 2018-11-24T062736.200.json
+
+###
+
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{"username":"Jack111"}
+
+<> 2018-11-24T062717.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token ae406f5f-7039-4062-b63d-cf1d07271a53
+
+{"message":"haaaai 111"}
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token ae406f5f-7039-4062-b63d-cf1d07271a53
+
+{"message":"haaaai 111"}
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token ae406f5f-7039-4062-b63d-cf1d07271a53
+
+{"message":"haaaai"}
+
+<> 2018-11-24T062628.200.json
+
+###
+
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{"username":"Jack111"}
+
+<> 2018-11-24T062605.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=2&count=4
+Authorization: Token e1c8e9f4-14e2-490f-98a4-64cf9dd590be
+
+<> 2018-11-24T060319.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=2&count=3
+Authorization: Token e1c8e9f4-14e2-490f-98a4-64cf9dd590be
+
+<> 2018-11-24T060309.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token e1c8e9f4-14e2-490f-98a4-64cf9dd590be
+
+{"message":"/thread22"}
+
+<> 2018-11-24T060301.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token e1c8e9f4-14e2-490f-98a4-64cf9dd590be
+
+{"message":"/thread22"}
+
+<> 2018-11-24T060300.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token e1c8e9f4-14e2-490f-98a4-64cf9dd590be
+
+{"message":"/thread22"}
+
+<> 2018-11-24T060259.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token e1c8e9f4-14e2-490f-98a4-64cf9dd590be
+
+{"message":"/thread22"}
+
+<> 2018-11-24T060258.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token e1c8e9f4-14e2-490f-98a4-64cf9dd590be
+
+{"message":"/thread22"}
+
+<> 2018-11-24T060257.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token e1c8e9f4-14e2-490f-98a4-64cf9dd590be
+
+{"message":"/thread22"}
+
+<> 2018-11-24T060255.200.json
+
+###
+
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{"username":"Jack111"}
+
+<> 2018-11-24T060241.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=2&count=3
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+<> 2018-11-24T055734.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=4
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+<> 2018-11-24T055715.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=2
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+<> 2018-11-24T055705.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=1
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+<> 2018-11-24T055656.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=0
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+<> 2018-11-24T055651.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=0&count=8
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+<> 2018-11-24T055644.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=0&count=6
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+<> 2018-11-24T055639.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=0&count=2
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+<> 2018-11-24T055629.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=2&count=1
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+###
+
+GET http://localhost:8080/messages?offset=2&count=1
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+{"message":"/thread22"}
+
+<> 2018-11-24T055441.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+{"message":"/thread22"}
+
+<> 2018-11-24T055439.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+{"message":"/thread22"}
+
+<> 2018-11-24T055438.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+{"message":"/thread22"}
+
+<> 2018-11-24T055437.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+{"message":"/thread22"}
+
+<> 2018-11-24T055435.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 3c588f2c-d40c-471a-b58a-7d634527f171
+
+{"message":"/thread22"}
+
+<> 2018-11-24T055433.200.json
+
+###
+
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{"username":"Jack111"}
+
+<> 2018-11-24T055419.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=2&count=1
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+###
+
+GET http://localhost:8080/messages?offset=2count=1
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+###
+
+GET http://localhost:8080/messages?offset=1&count=1
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+<> 2018-11-24T055208.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=1&count=4
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+<> 2018-11-24T055200.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=1&count=3
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+<> 2018-11-24T055155.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=1&count=2
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+<> 2018-11-24T055115.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=2&count=10
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+<> 2018-11-24T055105.200.json
+
+###
+
+GET http://localhost:8080/messages?offset=0&count=10
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+<> 2018-11-24T055034.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+{"message":"/thread22"}
+
+<> 2018-11-24T055003.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+{"message":"/thread22"}
+
+<> 2018-11-24T055001.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+{"message":"/thread"}
+
+<> 2018-11-24T054955.200.json
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 092b918c-4350-473e-b82d-bea43b9055c7
+
+{"message":"/thread"}
+
+<> 2018-11-24T054953.200.json
+
+###
+
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{"username":"Jack111"}
+
+<> 2018-11-24T054843.200.json
+
+###
+
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{"username":"Jack111"}
+
+###
+
+GET http://localhost:8080/messages?offset=1&count=10
+Authorization: Token 369d6db6-9f39-4c41-9be3-15a602bbb2f6
+
+###
+
+POST http://localhost:8080/messages
+Content-Type: application/json
+Authorization: Token 369d6db6-9f39-4c41-9be3-15a602bbb2f6
+
+{"message":"Hello world!11"}
+
+<> 2018-11-24T051659.200.json
+
+###
+
