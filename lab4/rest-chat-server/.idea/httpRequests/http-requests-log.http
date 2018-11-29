@@ -3,6 +3,15 @@ Content-Type: application/json
 
 {"username":"Jack111"}
 
+<> 2018-11-29T125440.200.json
+
+###
+
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{"username":"Jack111"}
+
 <> 2018-11-24T063146.200.json
 
 ###
@@ -397,16 +406,6 @@ Content-Type: application/json
 
 GET http://localhost:8080/messages?offset=1&count=10
 Authorization: Token 369d6db6-9f39-4c41-9be3-15a602bbb2f6
-
-###
-
-POST http://localhost:8080/messages
-Content-Type: application/json
-Authorization: Token 369d6db6-9f39-4c41-9be3-15a602bbb2f6
-
-{"message":"Hello world!11"}
-
-<> 2018-11-24T051659.200.json
 
 ###
 

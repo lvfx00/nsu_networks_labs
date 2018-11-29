@@ -1,5 +1,7 @@
 package ru.nsu.fit.semenov.restchatclient.responses;
 
+import org.jetbrains.annotations.Nullable;
+
 public class LoginResponse {
     private final int id;
     private final String username;
@@ -27,5 +29,16 @@ public class LoginResponse {
 
     public String getToken() {
         return token;
+    }
+
+    public static @Nullable LoginResponse checkNulls(@Nullable LoginResponse loginResponse) {
+        if (loginResponse == null ||
+                loginResponse.getUsername() == null ||
+                loginResponse.getToken() == null ||
+                loginResponse.id < 1) {
+            return null;
+        } else {
+            return loginResponse;
+        }
     }
 }
