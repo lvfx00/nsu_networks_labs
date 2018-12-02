@@ -6,13 +6,12 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.nsu.fit.semenov.restchat.message.Message;
 import ru.nsu.fit.semenov.restchat.message.MessageManager;
-import ru.nsu.fit.semenov.restchat.requests.LoginRequest;
-import ru.nsu.fit.semenov.restchat.requests.SendMessageRequest;
-import ru.nsu.fit.semenov.restchat.responses.LoginResponse;
-import ru.nsu.fit.semenov.restchat.responses.LogoutResponse;
 import ru.nsu.fit.semenov.restchat.user.*;
+import ru.nsu.fit.semenov.restchatutil.Message;
+import ru.nsu.fit.semenov.restchatutil.requests.LoginRequest;
+import ru.nsu.fit.semenov.restchatutil.requests.SendMessageRequest;
+import ru.nsu.fit.semenov.restchatutil.responses.*;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,6 +19,7 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -183,26 +183,21 @@ public class RestChatServer implements Runnable {
 
             Map<UserInfo, UserState> states = userManager.getUserStatesMap();
 
-            JsonObject responseJson = new JsonObject();
-            JsonArray usersArray = new JsonArray();
-
-            responseJson.add("users", usersArray);
+            List<UserInfoResponse> userInfoResponses = new ArrayList<>();
 
             for (Map.Entry<UserInfo, UserState> userData : states.entrySet()) {
-                JsonObject user = new JsonObject();
-
-                user.addProperty("id", userData.getKey().getId());
-                user.addProperty("username", userData.getKey().getUsername());
-                user.addProperty("online", userData.getValue().getOnlineState().toString());
-
-                usersArray.add(user);
+                userInfoResponses.add(
+                        new UserInfoResponse(userData.getKey().getId(),
+                                userData.getKey().getUsername(),
+                                userData.getValue().getOnlineState().toString()));
             }
 
-            String responseString = gson.toJson(responseJson);
+            UsersListResponse usersListResponse = new UsersListResponse(userInfoResponses);
+
+            String responseString = gson.toJson(usersListResponse);
 
             http.getResponseHeaders().add("Content-Type", "application/json");
             sendOkResponse(http, responseString);
-
         });
     }
 
@@ -247,12 +242,11 @@ public class RestChatServer implements Runnable {
                         return;
                     }
 
-                    JsonObject responseJson = new JsonObject();
-                    responseJson.addProperty("id", id);
-                    responseJson.addProperty("username", userInfo.getUsername());
-                    responseJson.addProperty("online", userState.getOnlineState().toString());
+                    UserInfoResponse userInfoResponse = new UserInfoResponse(id,
+                            userInfo.getUsername(),
+                            userState.getOnlineState().toString());
 
-                    String responseString = gson.toJson(responseJson);
+                    String responseString = gson.toJson(userInfoResponse);
 
                     http.getResponseHeaders().add("Content-Type", "application/json");
                     sendOkResponse(http, responseString);
@@ -321,11 +315,9 @@ public class RestChatServer implements Runnable {
 
         Message msg = messageManager.sendMessage(sendMessageRequest.getMessage(), userInfo);
 
-        JsonObject response = new JsonObject();
-        response.addProperty("id", msg.getId());
-        response.addProperty("message", msg.getMessageText());
+        SendMessageResponse sendMessageResponse = new SendMessageResponse(msg.getMessageText(), msg.getId());
 
-        String responseAsString = gson.toJson(response);
+        String responseAsString = gson.toJson(sendMessageResponse);
 
         http.getResponseHeaders().add("Content-Type", "application/json");
         sendOkResponse(http, responseAsString);
@@ -383,21 +375,11 @@ public class RestChatServer implements Runnable {
             }
         }
 
-        System.out.println("offset = " + offset);
-        System.out.println("count = " + count + "\n");
-
         List<Message> messages = messageManager.getMessages(offset, count);
 
-        JsonObject responseJson = new JsonObject();
-        JsonArray messagesArray = new JsonArray();
+        MessagesListResponse messagesListResponse = new MessagesListResponse(messages);
 
-        responseJson.add("messages", messagesArray);
-
-        for (Message msg : messages) {
-            messagesArray.add(gson.toJson(msg));
-        }
-
-        String responseString = gson.toJson(responseJson);
+        String responseString = gson.toJson(messagesListResponse);
 
         http.getResponseHeaders().add("Content-Type", "application/json");
         sendOkResponse(http, responseString);

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="rest-chat-util">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/rest_chat_util_jar/rest-chat-util.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

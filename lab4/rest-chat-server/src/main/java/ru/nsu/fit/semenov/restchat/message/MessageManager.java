@@ -3,6 +3,7 @@ package ru.nsu.fit.semenov.restchat.message;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.nsu.fit.semenov.restchat.user.UserInfo;
+import ru.nsu.fit.semenov.restchatutil.Message;
 
 import java.util.ArrayList;
 import java.util.Collections;
