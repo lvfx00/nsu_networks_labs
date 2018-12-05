@@ -2,40 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9a6a3d03-5c29-440d-b6f4-63ff69776268" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../rest-chat-client/.idea/libraries/rest_chat_util.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../rest-chat-client/src/main/java/ru/nsu/fit/semenov/restchatclient/UserInfo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../rest-chat-client/src/main/java/ru/nsu/fit/semenov/restchatclient/UsersCache.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/httpRequests/2018-11-29T025829.200.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/httpRequests/2018-11-29T025835.200.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/rest_chat_util.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../rest-chat-util/.idea/artifacts/rest_chat_util_jar.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../rest-chat-util/.idea/gradle.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../rest-chat-util/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../rest-chat-util/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../rest-chat-util/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../rest-chat-util/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../rest-chat-util/src/main/java/ru/nsu/fit/semenov/restchatutil/responses/MessagesListResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../rest-chat-util/src/main/java/ru/nsu/fit/semenov/restchatutil/responses/UsersListResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rest-chat-client/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../rest-chat-client/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rest-chat-client/src/main/java/ru/nsu/fit/semenov/restchatclient/Message.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rest-chat-client/src/main/java/ru/nsu/fit/semenov/restchatclient/RestChatClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/../rest-chat-client/src/main/java/ru/nsu/fit/semenov/restchatclient/RestChatClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rest-chat-client/src/main/java/ru/nsu/fit/semenov/restchatclient/requests/LoginRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rest-chat-client/src/main/java/ru/nsu/fit/semenov/restchatclient/requests/SendMessageRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rest-chat-client/src/main/java/ru/nsu/fit/semenov/restchatclient/responses/LoginResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rest-chat-client/src/main/java/ru/nsu/fit/semenov/restchatclient/responses/LogoutResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rest-chat-client/src/main/java/ru/nsu/fit/semenov/restchatclient/responses/SendMessageResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rest-chat-client/src/main/java/ru/nsu/fit/semenov/restchatclient/responses/UserInfoResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2018-11-24T054843.200.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/http-requests-log.http" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/httpRequests/http-requests-log.http" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/RestChatServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/RestChatServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/message/Message.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/message/MessageManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/message/MessageManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/requests/LoginRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/requests/SendMessageRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/responses/LoginResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/responses/LogoutResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/responses/UserInfoResponse.java" beforeDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/.gradle/" />
@@ -141,12 +108,13 @@
     <session id="2019492291">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="5" />
+          <entry key="project.closed" value="7" />
           <entry key="project.open.time.1" value="1" />
           <entry key="project.open.time.16" value="1" />
-          <entry key="project.open.time.19" value="1" />
+          <entry key="project.open.time.18" value="1" />
+          <entry key="project.open.time.19" value="2" />
           <entry key="project.open.time.2" value="2" />
-          <entry key="project.opened" value="5" />
+          <entry key="project.opened" value="7" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -218,7 +186,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/user/Token.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="361">
+            <state relative-caret-position="266">
               <caret line="23" selection-start-line="23" selection-end-line="23" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -240,7 +208,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/user/UserState.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="285">
+            <state relative-caret-position="247">
               <caret line="21" selection-start-line="21" selection-end-line="21" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -264,7 +232,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/message/MessageManager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="855">
+            <state relative-caret-position="665">
               <caret line="45" column="21" selection-start-line="45" selection-start-column="21" selection-end-line="45" selection-end-column="21" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -276,7 +244,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/user/SessionInfo.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="513">
+            <state relative-caret-position="418">
               <caret line="33" column="21" selection-start-line="33" selection-start-column="21" selection-end-line="33" selection-end-column="21" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -288,7 +256,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/user/UserManager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="209">
+            <state relative-caret-position="76">
               <caret line="11" column="13" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -662,7 +630,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
@@ -767,6 +734,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -2073,11 +2041,13 @@
       <workItem from="1543726417665" duration="4168000" />
       <workItem from="1543730688284" duration="21000" />
       <workItem from="1543730789885" duration="4611000" />
+      <workItem from="1544012559629" duration="599000" />
+      <workItem from="1544019545958" duration="6000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="57857000" />
+    <option name="totallyTimeSpent" value="58462000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="63" y="0" width="1858" height="1081" extended-state="6" />
@@ -2088,7 +2058,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info id="Capture Tool" order="3" />
       <window_info id="Designer" order="4" />
-      <window_info content_ui="combo" id="Project" order="5" visible="true" weight="0.2835738" />
+      <window_info content_ui="combo" id="Project" order="5" visible="true" weight="0.29134294" />
       <window_info id="Structure" order="6" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="0" />
       <window_info anchor="bottom" id="Event Log" order="1" side_tool="true" />
@@ -2187,9 +2157,37 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/RestChatServer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="399">
+          <caret line="358" column="45" selection-start-line="358" selection-start-column="45" selection-end-line="358" selection-end-column="45" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="method#createLoginContext#0;class#RestChatServer#0" />
+            <element signature="method#createLogoutContext#0;class#RestChatServer#0" />
+            <element signature="method#createUsersListContext#0;class#RestChatServer#0" />
+            <element signature="method#invokeMessagesPOSTcontext#0;class#RestChatServer#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/lib/rest_chat_util_jar/rest-chat-util.jar!/ru/nsu/fit/semenov/restchatutil/responses/SendMessageResponse.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="20" column="21" selection-start-line="20" selection-start-column="21" selection-end-line="20" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/lib/rest_chat_util_jar/rest-chat-util.jar!/ru/nsu/fit/semenov/restchatutil/responses/MessagesListResponse.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="114">
+          <caret line="12" column="13" selection-start-line="12" selection-start-column="13" selection-end-line="12" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/user/Token.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="361">
+        <state relative-caret-position="266">
           <caret line="23" selection-start-line="23" selection-end-line="23" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -2207,7 +2205,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/user/UserState.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
+        <state relative-caret-position="247">
           <caret line="21" selection-start-line="21" selection-end-line="21" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -2227,7 +2225,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/message/MessageManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="855">
+        <state relative-caret-position="665">
           <caret line="45" column="21" selection-start-line="45" selection-start-column="21" selection-end-line="45" selection-end-column="21" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -2237,7 +2235,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/user/SessionInfo.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="513">
+        <state relative-caret-position="418">
           <caret line="33" column="21" selection-start-line="33" selection-start-column="21" selection-end-line="33" selection-end-column="21" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -2247,7 +2245,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/user/UserManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="209">
+        <state relative-caret-position="76">
           <caret line="11" column="13" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -2255,34 +2253,6 @@
             <element signature="method#getSessionInfoByToken#0;class#UserManager#0" />
             <element signature="method#getUserStateByUserInfo#0;class#UserManager#0" />
             <element signature="method#getUserByToken#0;class#UserManager#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$PROJECT_DIR$/lib/rest_chat_util_jar/rest-chat-util.jar!/ru/nsu/fit/semenov/restchatutil/responses/MessagesListResponse.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="114">
-          <caret line="12" column="13" selection-start-line="12" selection-start-column="13" selection-end-line="12" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$PROJECT_DIR$/lib/rest_chat_util_jar/rest-chat-util.jar!/ru/nsu/fit/semenov/restchatutil/responses/SendMessageResponse.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="20" column="21" selection-start-line="20" selection-start-column="21" selection-end-line="20" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/restchat/RestChatServer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="399">
-          <caret line="358" column="45" selection-start-line="358" selection-start-column="45" selection-end-line="358" selection-end-column="45" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="method#createLoginContext#0;class#RestChatServer#0" />
-            <element signature="method#createLogoutContext#0;class#RestChatServer#0" />
-            <element signature="method#createUsersListContext#0;class#RestChatServer#0" />
-            <element signature="method#invokeMessagesPOSTcontext#0;class#RestChatServer#0" />
           </folding>
         </state>
       </provider>
