@@ -46,16 +46,16 @@ public class PortForwarder implements Runnable {
                 while (iter.hasNext()) {
                     SelectionKey key = iter.next();
 
-                    if (key.isAcceptable() && key.isValid()) {
+                    if (key.isValid() && key.isAcceptable()) {
                         handleAccept(key);
                     }
-                    if (key.isConnectable() && key.isValid()) {
+                    if (key.isValid() && key.isConnectable()) {
                         handleConnect(key);
                     }
-                    if (key.isReadable() && key.isValid()) {
+                    if (key.isValid() && key.isReadable()) {
                         handleRead(key);
                     }
-                    if (key.isWritable() && key.isValid()) {
+                    if (key.isValid() && key.isWritable()) {
                         handleWrite(key);
                     }
 
@@ -71,6 +71,9 @@ public class PortForwarder implements Runnable {
         ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
 
         SocketChannel clientSocketChannel = serverSocketChannel.accept();
+
+        System.out.println("Accepted incoming connection from " + clientSocketChannel.getRemoteAddress());
+
         clientSocketChannel.configureBlocking(false);
 
         SocketChannel destSocketChannel = SocketChannel.open();
@@ -98,6 +101,8 @@ public class PortForwarder implements Runnable {
                 throw new AssertionError("Unexpected behaviour: true or exception were expected");
             }
 
+            System.out.println("Connected to " + destSocketChannel.getRemoteAddress());
+
             // register both socket channels for read
             forwardingData.getClientSelectionKey().interestOps(OP_READ);
             selectionKey.interestOps(OP_READ);
@@ -120,36 +125,118 @@ public class PortForwarder implements Runnable {
             case CLIENT: {
                 long recvNum = socketChannel.read(forwardingData.getClientToDestBuffer());
 
-                if (recvNum == -1) { // socket was closed by client.
-                    selectionKey.cancel();
-                    forwardingData.getDestSelectionKey().cancel();
+                System.out.println("Read " + recvNum + " bytes from " + socketChannel.getRemoteAddress());
 
+                if (recvNum == -1) { // socket was closed by client side
+                    selectionKey.cancel();
                     socketChannel.close();
-                    forwardingData.getDestSocketChannel().close();
+
+                    forwardingData.closeClientSocketChannel();
                 }
 
-                // there is no empty space to read something
+                // there is no empty space to read something from client socket channel
                 if (forwardingData.getClientToDestBuffer().remaining() == 0) {
                     selectionKey.interestOps(selectionKey.interestOps() & ~OP_READ);
                 }
 
-                // if we have read something, we can write it to another socket channel
+                // if we have read something from client, we can write it to destination socket channel
                 if (recvNum > 0) {
                     forwardingData.getDestSelectionKey().interestOps(
                             forwardingData.getDestSelectionKey().interestOps() | OP_WRITE);
                 }
+                break;
             }
-            break;
             case DESTINATION: {
+                long recvNum = socketChannel.read(forwardingData.getDestToClientBuffer());
 
+                System.out.println("Read " + recvNum + " bytes from " + socketChannel.getRemoteAddress());
+
+                if (recvNum == -1) { // socket was closed by destination side
+                    selectionKey.cancel();
+                    socketChannel.close();
+
+                    forwardingData.closeDestSocketChannel();
+                }
+
+                // there is no empty space to read something from destination socket channel
+                if (forwardingData.getDestToClientBuffer().remaining() == 0) {
+                    selectionKey.interestOps(selectionKey.interestOps() & ~OP_READ);
+                }
+
+                // if we have read something from dest, we can write it to client socket channel
+                if (recvNum > 0) {
+                    forwardingData.getClientSelectionKey().interestOps(
+                            forwardingData.getClientSelectionKey().interestOps() | OP_WRITE);
+                }
+                break;
             }
-            break;
             default:
                 throw new AssertionError("Unexpected socket channel side received");
         }
     }
 
     private void handleWrite(SelectionKey selectionKey) throws IOException {
+        SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+        SocketChannelRef socketChannelRef = (SocketChannelRef) selectionKey.attachment();
+        ForwardingData forwardingData = socketChannelRef.getForwardingData();
+
+        switch (socketChannelRef.getSocketChannelSide()) {
+            case CLIENT: {
+                forwardingData.getDestToClientBuffer().flip();
+                long writeNum = socketChannel.write(forwardingData.getDestToClientBuffer());
+
+                // there is no data to write to client socket anymore
+                if (forwardingData.getDestToClientBuffer().remaining() == 0) {
+                    selectionKey.interestOps(selectionKey.interestOps() & ~OP_WRITE);
+
+                    if (forwardingData.isClosedDestSocketChannel()) {
+                        selectionKey.cancel();
+                        selectionKey.channel().close();
+                        return;
+                    }
+                }
+
+                forwardingData.getDestToClientBuffer().compact();
+
+                System.out.println("Write " + writeNum + " bytes to " + socketChannel.getRemoteAddress());
+
+
+                // if we write something to client socket channel, we can read something from dest socket channel
+                if (writeNum > 0) {
+                    forwardingData.getDestSelectionKey().interestOps(
+                            forwardingData.getDestSelectionKey().interestOps() | OP_READ);
+                }
+                break;
+            }
+            case DESTINATION: {
+                forwardingData.getClientToDestBuffer().flip();
+                long writeNum = socketChannel.write(forwardingData.getClientToDestBuffer());
+
+                // there is no data to write to destination socket anymore
+                if (forwardingData.getClientToDestBuffer().remaining() == 0) {
+                    selectionKey.interestOps(selectionKey.interestOps() & ~OP_WRITE);
+
+                    if (forwardingData.isClosedClientSocketChannel()) {
+                        selectionKey.cancel();
+                        selectionKey.channel().close();
+                        return;
+                    }
+                }
+
+                forwardingData.getClientToDestBuffer().compact();
+
+                System.out.println("Write " + writeNum + " bytes to " + socketChannel.getRemoteAddress());
+
+                // if we write something to dest socket channel, we can read something from client socket channel
+                if (writeNum > 0) {
+                    forwardingData.getClientSelectionKey().interestOps(
+                            forwardingData.getClientSelectionKey().interestOps() | OP_READ);
+                }
+                break;
+            }
+            default:
+                throw new AssertionError("Unexpected socket channel side received");
+        }
     }
 }
 

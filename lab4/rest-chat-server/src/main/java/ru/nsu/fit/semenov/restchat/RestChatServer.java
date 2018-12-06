@@ -22,6 +22,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -37,6 +39,8 @@ public class RestChatServer implements Runnable {
     private MessageManager messageManager = new MessageManager();
 
     private Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+    private final Executor keepAliveChecker = Executors.newSingleThreadExecutor();
 
     public RestChatServer(int port) {
         this.port = port;
@@ -63,6 +67,17 @@ public class RestChatServer implements Runnable {
             createUsersListContext(server);
             createUserInfoContext(server);
             createMessagesContext(server);
+
+            keepAliveChecker.execute(() -> {
+                while (true) {
+                    userManager.checkSessionActivities();
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        return;
+                    }
+                }
+            });
 
             server.start();
 

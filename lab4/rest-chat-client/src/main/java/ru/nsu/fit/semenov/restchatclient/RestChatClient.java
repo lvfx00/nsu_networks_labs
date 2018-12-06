@@ -185,6 +185,11 @@ public class RestChatClient implements Runnable {
                         }
 
                     } catch (HttpResponseException e1) {
+                        if (e1.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                            outputStream.println("User with specified id not found");
+                            continue;
+                        }
+
                         outputStream.println("Status code " + e1.getStatusCode() + ". Exiting.");
                         break;
                     }

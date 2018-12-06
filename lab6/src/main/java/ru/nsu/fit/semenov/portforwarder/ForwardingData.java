@@ -5,7 +5,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 public class ForwardingData {
-    private static final int BUF_SIZE = 1024;
+    private static final int BUF_SIZE = 512;
 
     private final SocketChannel clientSocketChannel;
     private final SocketChannel destSocketChannel;
@@ -13,6 +13,8 @@ public class ForwardingData {
     private final SelectionKey destSelectionKey;
     private final ByteBuffer clientToDestBuffer = ByteBuffer.allocate(BUF_SIZE);
     private final ByteBuffer destToClientBuffer = ByteBuffer.allocate(BUF_SIZE);
+    private boolean closedDestSocketChannel;
+    private boolean closedClientSocketChannel;
 
     public ForwardingData(SocketChannel clientSocketChannel,
                           SocketChannel destSocketChannel,
@@ -22,6 +24,8 @@ public class ForwardingData {
         this.destSocketChannel = destSocketChannel;
         this.clientSelectionKey = clientSelectionKey;
         this.destSelectionKey = destSelectionKey;
+        closedClientSocketChannel = false;
+        closedDestSocketChannel = false;
     }
 
     public ByteBuffer getClientToDestBuffer() {
@@ -46,6 +50,22 @@ public class ForwardingData {
 
     public SelectionKey getDestSelectionKey() {
         return destSelectionKey;
+    }
+
+    public boolean isClosedDestSocketChannel() {
+        return closedDestSocketChannel;
+    }
+
+    public boolean isClosedClientSocketChannel() {
+        return closedClientSocketChannel;
+    }
+
+    public void closeClientSocketChannel() {
+        closedClientSocketChannel = true;
+    }
+
+    public void closeDestSocketChannel() {
+        closedDestSocketChannel = true;
     }
 }
 

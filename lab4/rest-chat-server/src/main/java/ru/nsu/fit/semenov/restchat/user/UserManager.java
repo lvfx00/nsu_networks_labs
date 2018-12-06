@@ -121,4 +121,29 @@ public class UserManager {
             sessionInfo.setLastActivity(Instant.now());
         }
     }
+
+    public void checkSessionActivities() {
+        Instant now = Instant.now();
+
+        Set<Token> tokensToRemove = new HashSet<>();
+        Set<UserState> usersToSetTimedOut = new HashSet<>();
+
+        for (SessionInfo sessionInfo : sessionsToUsersMap.keySet()) {
+            UserInfo userInfo = sessionsToUsersMap.get(sessionInfo);
+
+            if (Duration.between(sessionInfo.getLastActivity(), now).compareTo(MAX_INACTIVITY_TIME) > 0) {
+                tokensToRemove.add(sessionInfo.getSessionToken());
+
+                UserState userState = userStatesMap.get(userInfo);
+                usersToSetTimedOut.add(userState);
+            }
+        }
+
+        for (Token tk : tokensToRemove) {
+            closeSessionByToken(tk);
+        }
+        for (UserState userState : usersToSetTimedOut) {
+            userState.setOnlineState(UserOnlineState.TIMED_OUT);
+        }
+    }
 }
