@@ -1,4 +1,4 @@
-package ru.nsu.fit.semenov.restchatclient;
+package ru.nsu.fit.semenov.restchatwebsocket.client;
 
 import com.google.common.base.Joiner;
 import com.google.gson.Gson;
@@ -16,10 +16,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.nsu.fit.semenov.restchatutil.Message;
-import ru.nsu.fit.semenov.restchatutil.requests.LoginRequest;
-import ru.nsu.fit.semenov.restchatutil.requests.SendMessageRequest;
-import ru.nsu.fit.semenov.restchatutil.responses.*;
+import ru.nsu.fit.semenov.restchatwebsocket.Message;
+import ru.nsu.fit.semenov.restchatwebsocket.requests.LoginRequest;
+import ru.nsu.fit.semenov.restchatwebsocket.requests.SendMessageRequest;
+import ru.nsu.fit.semenov.restchatwebsocket.responses.*;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -205,6 +205,10 @@ public class RestChatClient implements Runnable {
                             outputStream.println("Invalid response received. Exiting.");
                             break;
                         }
+
+                        // TODO remove later
+                        outputStream.println(sendMessageResponse.getId() + ": " + sendMessageResponse.getMessage());
+
                     } catch (HttpResponseException e1) {
                         outputStream.println("Status code " + e1.getStatusCode() + ". Exiting.");
                         break;
@@ -323,7 +327,7 @@ public class RestChatClient implements Runnable {
             int statusCode = response.getStatusLine().getStatusCode();
 
             if (statusCode != HttpStatus.SC_OK) {
-                throw new HttpResponseException(statusCode, "Unable to logout");
+                throw new HttpResponseException(statusCode, "Unable to get usewr info");
             }
 
             HttpEntity responseEntity = response.getEntity();
@@ -388,7 +392,7 @@ public class RestChatClient implements Runnable {
             int statusCode = response.getStatusLine().getStatusCode();
 
             if (statusCode != HttpStatus.SC_OK) {
-                throw new HttpResponseException(statusCode, "Unable to logout");
+                throw new HttpResponseException(statusCode, "Unable to get messages list");
             }
 
             HttpEntity responseEntity = response.getEntity();
