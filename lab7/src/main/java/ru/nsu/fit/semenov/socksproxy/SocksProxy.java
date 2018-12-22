@@ -1,12 +1,12 @@
 package ru.nsu.fit.semenov.socksproxy;
 
+import org.jetbrains.annotations.Nullable;
+import org.omg.PortableInterceptor.ACTIVE;
+import org.xbill.DNS.*;
 import ru.nsu.fit.semenov.socksproxy.socksprotocolspecs.*;
 
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
+import java.net.*;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -19,8 +19,21 @@ import static ru.nsu.fit.semenov.socksproxy.SocketChannelRef.SocketChannelSide.C
 import static ru.nsu.fit.semenov.socksproxy.SocketChannelRef.SocketChannelSide.DESTINATION;
 
 public class SocksProxy implements Runnable {
-    private static final byte VERSION = 0x05;
+    private static final String DNS_SERVER_ADDR = "8.8.8.8";
+    private static final int DNS_SERVER_PORT = 53;
 
+    private final SimpleResolver simpleResolver;
+
+    {
+        try {
+            simpleResolver = new SimpleResolver(DNS_SERVER_ADDR);
+        } catch (UnknownHostException e) {
+            throw new ExceptionInInitializerError();
+        }
+        simpleResolver.setPort(DNS_SERVER_PORT);
+    }
+
+    private static final byte VERSION = 0x05;
     private static final int BACKLOG = 10;
 
     private final int proxyPort;
@@ -109,29 +122,21 @@ public class SocksProxy implements Runnable {
 
             selectionKey.interestOps(0);
             socksClient.getClientSelectionKey().interestOps(OP_WRITE);
+            socksClient.setSocksClientState(SocksClientState.SEND_CONN_RESP);
 
             ConnectionResponse response = new ConnectionResponse(VERSION, ConnRespCode.REQUEST_GRANTED,
                     AddressType.IPV4_ADDRESS, socksClient.getDestAddress().getAddress(), socksClient.getDestAddress().getPort());
-            // TODO понять что тут надо отправлять
-
             socksClient.getDestToClientBuffer().put(response.toByteArray());
 
-            System.out.println("++++++++++");
-            System.out.println("++++++++++");
-
-            socksClient.setSocksClientState(SocksClientState.SEND_CONN_RESP);
-
         } catch (IOException e) {
-            // TODO add error detalization
-            // unable to connect to the specified host
             System.out.println("Unable to connect to " + destSocketChannel.getRemoteAddress());
 
             ConnectionResponse response = new ConnectionResponse(VERSION, ConnRespCode.HOST_UNREACHABLE,
-                    AddressType.IPV4_ADDRESS, InetAddress.getLocalHost(), proxyPort); // TODO понять что тут надо отправлять
-            socksClient.setCloseUponSending(true);
-
+                    AddressType.IPV4_ADDRESS, socksClient.getDestAddress().getAddress(), socksClient.getDestAddress().getPort());
             socksClient.getDestToClientBuffer().put(response.toByteArray());
 
+            socksClient.setCloseUponSending(true);
+            socksClient.getClientSelectionKey().interestOps(OP_WRITE);
             socksClient.setSocksClientState(SocksClientState.SEND_CONN_RESP);
         }
     }
@@ -156,12 +161,25 @@ public class SocksProxy implements Runnable {
     }
 
     private void handleReadFromClient(SocketChannel socketChannel, SocksClient socksClient, SelectionKey selectionKey) throws IOException {
-        long recvNum = socketChannel.read(socksClient.getClientToDestBuffer());
+        if (socksClient.getSocksClientState() == SocksClientState.CLOSED) {
+            socksClient.closeClientSide();
+            return;
+        }
+
+        // TODO add exception handling ???
+        long recvNum;
+        try {
+            recvNum = socketChannel.read(socksClient.getClientToDestBuffer());
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            return;
+        }
 
         if (recvNum == -1) {
-            System.out.println(socketChannel.getRemoteAddress() + " (client) closed connection");
-
             socksClient.closeClientSide();
+            if (socksClient.getDestSelectionKey() != null) {
+                socksClient.getDestSelectionKey().interestOps(socksClient.getDestSelectionKey().interestOps() & ~OP_READ);
+            }
             return;
         }
 
@@ -186,32 +204,44 @@ public class SocksProxy implements Runnable {
                             socksClient.getDestSelectionKey().interestOps() | OP_WRITE);
                 }
                 break;
+
             case SEND_GREETING_RESP:
             case CONNECTING_TO_DEST:
             case SEND_CONN_RESP:
             case CLOSED:
-                System.out.println("Мы не должны были сюда попасть, Андрюха!");
-                break;
             default:
-                throw new AssertionError("Invalid SocketClientState");
+                throw new AssertionError("Invalid SocketClientState " + socksClient.getSocksClientState());
         }
     }
 
     private void handleReadFromDestination(SocketChannel socketChannel, SocksClient socksClient, SelectionKey selectionKey)
             throws IOException {
-        long recvNum = socketChannel.read(socksClient.getDestToClientBuffer());
+        if (socksClient.getSocksClientState() == SocksClientState.CLOSED) {
+            socksClient.closeDestSide();
+            return;
+        }
+
+
+        long recvNum;
+        try {
+            recvNum = socketChannel.read(socksClient.getDestToClientBuffer());
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            return;
+        }
 
         System.out.println("Read " + recvNum + " bytes from " + socketChannel.getRemoteAddress());
 
         if (recvNum == -1) { // socket was closed by destination side
             System.out.println(socketChannel.getRemoteAddress() + " (destination) closed connection");
             socksClient.closeDestSide();
+            socksClient.getClientSelectionKey().interestOps(socksClient.getClientSelectionKey().interestOps() & ~OP_READ);
             return;
         }
 
         // there is no empty space to read something from destination socket channel
         if (socksClient.getDestToClientBuffer().remaining() == 0) {
-             selectionKey.interestOps(selectionKey.interestOps() & ~OP_READ);
+            selectionKey.interestOps(selectionKey.interestOps() & ~OP_READ);
         }
 
         // if we have read something from dest, we can write it to client socket channel
@@ -223,7 +253,6 @@ public class SocksProxy implements Runnable {
 
     private void processGreeting(SocketChannel socketChannel, SocksClient socksClient) throws IOException {
         GreetingMessage greeting;
-
 
         try {
             greeting = socksClient.extractClientGreeting();
@@ -237,7 +266,7 @@ public class SocksProxy implements Runnable {
 
         if (greeting != null) {
             if (greeting.getSocksVersion() != VERSION) {
-                System.out.println("Unsupported version of socksprotocolspecs protocol from client " + socketChannel.getRemoteAddress());
+                System.out.println("Unsupported version of socks protocol from client " + socketChannel.getRemoteAddress());
                 socksClient.closeClientSide();
                 return;
             }
@@ -247,7 +276,7 @@ public class SocksProxy implements Runnable {
                 response = new GreetingResponse(VERSION, AuthMethod.NO_AUTHENTICATION);
 
             } else {
-                System.out.println("Client doesn't supports required auth method" + socketChannel.getRemoteAddress());
+                System.out.println("Client doesn't supports required auth method " + socketChannel.getRemoteAddress());
                 response = new GreetingResponse(VERSION, AuthMethod.NO_ACCEPTABLE_METHOD);
                 socksClient.setCloseUponSending(true);
             }
@@ -276,50 +305,82 @@ public class SocksProxy implements Runnable {
                 return;
             }
 
-            socksClient.getClientSelectionKey().interestOps(0);
-
             switch (request.getCommandNumber()) {
                 case ESTABLISH_STREAM_CONNECTION:
+                    InetAddress address;
                     switch (request.getAddressType()) {
-                        case IPV4_ADDRESS:
-                            System.out.println("aaa");
-                            Inet4Address inet4Address = (Inet4Address) request.getAddress();
-                            InetSocketAddress inetSocketAddress = new InetSocketAddress(inet4Address, request.getPort());
-                            socksClient.setDestAddress(inetSocketAddress);
-                            connectToDestination(socksClient, inetSocketAddress);
+                        case IPV4_ADDRESS: {
+                            address = (Inet4Address) request.getAddress();
                             break;
-                        case DOMAIN_NAME:
-                            System.out.println("bbb");
-                            resolveDomainName(socksClient, request);
+                        }
+                        case DOMAIN_NAME: {
+                            address = resolveDomainName(socksClient, request);
                             break;
-                        case IPV6_ADDRESS:
-                            Inet6Address inet6Address = (Inet6Address) request.getAddress();
-                            connectToDestination(socksClient, new InetSocketAddress(inet6Address, request.getPort()));
+                        }
+                        case IPV6_ADDRESS: {
+                            address = (Inet6Address) request.getAddress();
                             break;
+                        }
+                        default:
+                            throw new AssertionError("Invalid address type received");
                     }
+
+                    if (address == null) {
+                        System.out.println("Unable to resolve hostname " + request.getAddress());
+
+                        ConnectionResponse response = new ConnectionResponse(VERSION, ConnRespCode.HOST_UNREACHABLE,
+                                AddressType.IPV4_ADDRESS, InetAddress.getLocalHost(), proxyPort);
+
+                        socksClient.setCloseUponSending(true);
+                        socksClient.getClientSelectionKey().interestOps(OP_WRITE);
+                        socksClient.setSocksClientState(SocksClientState.SEND_CONN_RESP);
+
+                        socksClient.getDestToClientBuffer().put(response.toByteArray());
+                    }
+
+                    socksClient.getClientSelectionKey().interestOps(0);
+                    socksClient.setSocksClientState(SocksClientState.CONNECTING_TO_DEST);
+
+                    InetSocketAddress inetSocketAddress = new InetSocketAddress(address, request.getPort());
+                    socksClient.setDestAddress(inetSocketAddress);
+                    connectToDestination(socksClient, inetSocketAddress);
+
                     break;
 
-                    // only one command is supported now
+                // only one command is supported now
                 case ASSOCIATE_UDP_PORT:
                 case ESTABLISH_PORT_BINDING:
                 default:
                     System.out.println("Unsupported method received from " + socketChannel.getRemoteAddress());
 
                     ConnectionResponse response = new ConnectionResponse(VERSION, ConnRespCode.CMD_NOT_SUPPORTEED,
-                            AddressType.IPV4_ADDRESS, InetAddress.getLocalHost(), proxyPort); // TODO понять что тут надо отправлять
+                            AddressType.IPV4_ADDRESS, InetAddress.getLocalHost(), proxyPort);
 
                     socksClient.setCloseUponSending(true);
                     socksClient.getClientSelectionKey().interestOps(OP_WRITE);
+                    socksClient.setSocksClientState(SocksClientState.SEND_CONN_RESP);
 
                     socksClient.getDestToClientBuffer().put(response.toByteArray());
-
-                    socksClient.setSocksClientState(SocksClientState.SEND_CONN_RESP);
             }
         }
     }
 
-    private void resolveDomainName(SocksClient socksClient, ConnectionRequest connectionRequest) {
+    private @Nullable InetAddress resolveDomainName(SocksClient socksClient, ConnectionRequest connectionRequest) {
+        try {
+            Lookup lookup = new Lookup((String) connectionRequest.getAddress(), Type.A);
+            lookup.setResolver(simpleResolver);
 
+            Record[] result = lookup.run();
+            if (result.length > 0) {
+                return ((ARecord) result[0]).getAddress();
+            } else {
+                return null;
+            }
+
+        } catch (TextParseException e) {
+            System.err.println(e.getMessage());
+            return null;
+        }
     }
 
     private void handleWrite(SelectionKey selectionKey) throws IOException {
@@ -380,13 +441,10 @@ public class SocksProxy implements Runnable {
                 }
                 break;
             case SEND_CONN_RESP:
-                System.out.println(1);
                 if (socksClient.getDestToClientBuffer().remaining() == 0) {
-                    System.out.println(2);
                     if (socksClient.isCloseUponSending()) {
                         socksClient.closeClientSide();
                     } else {
-                        System.out.println(3);
                         socksClient.setSocksClientState(SocksClientState.ACTIVE);
 
                         socksClient.getClientSelectionKey().interestOps(OP_READ);
@@ -412,12 +470,16 @@ public class SocksProxy implements Runnable {
                 }
                 break;
 
+            case CLOSED: {
+                if (socksClient.getDestToClientBuffer().remaining() == 0) {
+                    socksClient.closeClientSide();
+                }
+                break;
+            }
+
             case RECV_INIT_GREETING:
             case RECV_CONN_REQ:
             case CONNECTING_TO_DEST:
-            case CLOSED:
-                System.out.println("Мы не должны были сюда попасть, Андрюха!");
-                break;
             default:
                 throw new AssertionError("Invalid SocketClientState");
         }

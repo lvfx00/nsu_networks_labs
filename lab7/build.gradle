@@ -15,4 +15,5 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile 'org.jetbrains:annotations:16.0.2'
     compile 'com.google.guava:guava:27.0.1-jre'
+    compile 'dnsjava:dnsjava:2.1.8'
 }
