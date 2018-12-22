@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="08261f69-a889-4153-ab8e-f8a663cff0b1" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/socksproxy/SocksProxy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/socksproxy/SocksProxy.java" afterDir="false" />
-    </list>
+    <list default="true" id="08261f69-a889-4153-ab8e-f8a663cff0b1" name="Default Changelist" comment="" />
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/.gradle/" />
     <ignored path="$PROJECT_DIR$/build/" />
@@ -39,8 +35,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/socksproxy/SocksProxy.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="234">
-              <caret line="375" column="19" selection-start-line="375" selection-start-column="19" selection-end-line="375" selection-end-column="19" />
+            <state relative-caret-position="434">
+              <caret line="385" column="18" lean-forward="true" selection-start-line="385" selection-start-column="18" selection-end-line="385" selection-end-column="18" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -280,7 +276,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1545479072206" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1545479080940" />
     <property name="last_directory_selection" value="$PROJECT_DIR$/src/main/java" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
@@ -334,12 +330,12 @@
       <workItem from="1544593337995" duration="50000" />
       <workItem from="1545181066004" duration="33241000" />
       <workItem from="1545468085322" duration="602000" />
-      <workItem from="1545472672953" duration="6124000" />
+      <workItem from="1545472672953" duration="6299000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="58079000" />
+    <option name="totallyTimeSpent" value="58254000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="59" y="0" width="1862" height="1081" extended-state="6" />
@@ -355,7 +351,7 @@
       <window_info anchor="bottom" id="Docker" order="0" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Find" order="2" weight="0.32912722" />
-      <window_info active="true" anchor="bottom" id="Run" order="3" visible="true" weight="0.32912722" />
+      <window_info anchor="bottom" id="Run" order="3" weight="0.32912722" />
       <window_info anchor="bottom" id="Debug" order="4" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="6" weight="0.4" />
@@ -501,8 +497,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ru/nsu/fit/semenov/socksproxy/SocksProxy.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="234">
-          <caret line="375" column="19" selection-start-line="375" selection-start-column="19" selection-end-line="375" selection-end-column="19" />
+        <state relative-caret-position="434">
+          <caret line="385" column="18" lean-forward="true" selection-start-line="385" selection-start-column="18" selection-end-line="385" selection-end-column="18" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

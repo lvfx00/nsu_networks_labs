@@ -37,6 +37,23 @@ public class UsersCache {
         return updates;
     }
 
+    public @Nullable UserInfo update(@NotNull UserInfoResponse newUserData) {
+        if (userInfosMap.containsKey(newUserData.getId())) {
+            if (!newUserData.getOnline().equals(userInfosMap.get(newUserData.getId()).getOnline())) {
+                userInfosMap.get(newUserData.getId()).setOnline(newUserData.getOnline());
+
+                return userInfosMap.get(newUserData.getId());
+            }
+        } else {
+            userInfosMap.put(newUserData.getId(), new UserInfo(newUserData));
+
+            if (newUserData.getOnline().equals("true")) {
+                return userInfosMap.get(newUserData.getId());
+            }
+        }
+        return null;
+    }
+
     public @Nullable String getNameById(int id) {
         checkArgument(id > 0);
         if (userInfosMap.containsKey(id)) {

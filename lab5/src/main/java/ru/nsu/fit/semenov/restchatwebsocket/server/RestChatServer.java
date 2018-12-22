@@ -12,9 +12,10 @@ import ru.nsu.fit.semenov.restchatwebsocket.server.message.MessageManager;
 import ru.nsu.fit.semenov.restchatwebsocket.server.user.*;
 
 import io.undertow.Undertow;
+import ru.nsu.fit.semenov.restchatwebsocket.websocket.LoginInfo;
+import ru.nsu.fit.semenov.restchatwebsocket.websocket.LogoutInfo;
+import ru.nsu.fit.semenov.restchatwebsocket.websocket.WebsocketHandler;
 
-import java.net.HttpURLConnection;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
@@ -24,23 +25,27 @@ import java.util.concurrent.Executors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static io.undertow.Handlers.path;
+import static io.undertow.Handlers.websocket;
 import static java.net.HttpURLConnection.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class RestChatServer implements Runnable {
     private final int port;
 
-    private static final String TOKEN_BEGINNING = "Token ";
-    private static final int BEGINNING_LENGHT = TOKEN_BEGINNING.length();
+    public static final String TOKEN_BEGINNING = "Token ";
+    public static final int BEGINNING_LENGHT = TOKEN_BEGINNING.length();
 
     private UserManager userManager = new UserManager();
     private MessageManager messageManager = new MessageManager();
+
+    private WebsocketHandler websocketHandler = new WebsocketHandler(userManager);
 
     private Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     private final Executor keepAliveChecker = Executors.newSingleThreadExecutor();
 
     public RestChatServer(int port) {
+        userManager.setWebsocketHandler(websocketHandler);
         this.port = port;
     }
 
@@ -58,11 +63,13 @@ public class RestChatServer implements Runnable {
                         .addExactPath("/users", this::usersListHandler)
                         .addPrefixPath("/user/", this::userInfoHandler)
                         .addExactPath("/messages", this::messagesHandler)
+                        .addExactPath("/messages-websocket", websocket(websocketHandler))
                 ).build();
 
         keepAliveChecker.execute(() -> {
             while (true) {
                 userManager.checkSessionActivities();
+                websocketHandler.sendKeepAlive();
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
@@ -122,6 +129,8 @@ public class RestChatServer implements Runnable {
         if (userManager.getSessionInfoByUser(user) == null) {
             SessionInfo sessionInfo = userManager.openSessionForUser(user);
 
+            websocketHandler.broadcastLogin(new LoginInfo(user));
+
             String responseBodyAsString = gson.toJson(new LoginResponse(
                     user.getId(),
                     username,
@@ -155,8 +164,16 @@ public class RestChatServer implements Runnable {
             return;
         }
 
+        UserInfo userInfo = userManager.getUserByToken(authToken);
+        if (userInfo == null) {
+            httpExchange.setStatusCode(HTTP_FORBIDDEN);
+            httpExchange.endExchange();
+        }
+
         try {
             userManager.closeSessionByToken(authToken, UserOnlineState.OFFLINE);
+
+            websocketHandler.broadcastLogout(new LogoutInfo(userInfo, UserOnlineState.OFFLINE));
 
             httpExchange.getResponseHeaders().add(Headers.CONTENT_TYPE, "application/json");
             String responseString = gson.toJson(new LogoutResponse("bye!"));
@@ -331,6 +348,7 @@ public class RestChatServer implements Runnable {
             }
 
             Message msg = messageManager.sendMessage(sendMessageRequest.getMessage(), userInfo);
+            websocketHandler.broadcastMessage(msg);
 
             SendMessageResponse sendMessageResponse = new SendMessageResponse(msg.getMessageText(), msg.getId());
 

@@ -2,6 +2,8 @@ package ru.nsu.fit.semenov.restchatwebsocket.server.user;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.nsu.fit.semenov.restchatwebsocket.websocket.LogoutInfo;
+import ru.nsu.fit.semenov.restchatwebsocket.websocket.WebsocketHandler;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -20,6 +22,8 @@ public class UserManager {
     private final Map<Token, SessionInfo> tokensToSessionsMap = new HashMap<>();
 
     private final Map<UserInfo, SessionInfo> usersToSessionsMap = new HashMap<>();
+
+    private WebsocketHandler websocketHandler = null;
     private final Map<SessionInfo, UserInfo> sessionsToUsersMap = new HashMap<>();
 
     private int userCount;
@@ -142,7 +146,14 @@ public class UserManager {
         }
 
         for (Token tk : tokensToRemove) {
+            if (websocketHandler != null) {
+                websocketHandler.broadcastLogout(new LogoutInfo(getUserByToken(tk), UserOnlineState.TIMED_OUT));
+            }
             closeSessionByToken(tk, UserOnlineState.TIMED_OUT);
         }
+    }
+
+    public void setWebsocketHandler(WebsocketHandler websocketHandler) {
+        this.websocketHandler = websocketHandler;
     }
 }
