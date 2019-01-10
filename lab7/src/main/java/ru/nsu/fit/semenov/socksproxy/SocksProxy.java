@@ -113,6 +113,8 @@ public class SocksProxy implements Runnable {
         SocketChannelRef socketChannelRef = (SocketChannelRef) selectionKey.attachment();
         SocksClient socksClient = socketChannelRef.getSocksClient();
 
+        SocketAddress addr = destSocketChannel.getRemoteAddress();
+
         try {
             if (!destSocketChannel.finishConnect()) {
                 throw new AssertionError("Unexpected behaviour: true or exception were expected");
@@ -129,7 +131,7 @@ public class SocksProxy implements Runnable {
             socksClient.getDestToClientBuffer().put(response.toByteArray());
 
         } catch (IOException e) {
-            System.out.println("Unable to connect to " + destSocketChannel.getRemoteAddress());
+            System.out.println("Unable to connect to " + addr);
 
             ConnectionResponse response = new ConnectionResponse(VERSION, ConnRespCode.HOST_UNREACHABLE,
                     AddressType.IPV4_ADDRESS, socksClient.getDestAddress().getAddress(), socksClient.getDestAddress().getPort());
@@ -171,7 +173,6 @@ public class SocksProxy implements Runnable {
         try {
             recvNum = socketChannel.read(socksClient.getClientToDestBuffer());
         } catch (IOException e) {
-            System.err.println(e.getMessage());
             return;
         }
 
@@ -226,7 +227,6 @@ public class SocksProxy implements Runnable {
         try {
             recvNum = socketChannel.read(socksClient.getDestToClientBuffer());
         } catch (IOException e) {
-            System.err.println(e.getMessage());
             return;
         }
 
